@@ -1,0 +1,123 @@
+<!-- Defines the ChatGPT Helper desktop UI shell. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ChatGPT Helper</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main id="appShell" class="ch-shell">
+      <section id="signedOutView" class="ch-signed-out">
+        <div class="ch-auth-panel">
+          <h1>ChatGPT Helper</h1>
+          <p id="signedOutStatusText">Sign in with ChatGPT to use scans and helper actions.</p>
+          <button id="loginButton" class="ch-primary ch-auth-button" type="button">Sign in with ChatGPT</button>
+        </div>
+      </section>
+
+      <section id="signedInView" class="ch-signed-in" hidden>
+        <header id="statusRow" class="ch-status-row">
+          <span id="statusText">Ready.</span>
+        </header>
+        <div id="sessionRow" class="ch-status-row ch-session-row">
+          <span id="accountLabel">Signed in</span>
+          <span id="limitText">--</span>
+          <button id="refreshButton" class="ch-icon-button" type="button" title="Refresh models and limits">&#8635;</button>
+          <button id="signOutButton" class="ch-mini ch-danger-text" type="button">Sign out</button>
+        </div>
+
+        <section id="controlsPanel" class="ch-controls">
+        <div class="ch-mode-grid">
+          <section class="ch-mode-panel">
+            <button id="scanTextButton" class="ch-primary ch-scan-button" type="button">
+              <span class="ch-button-copy">
+                <span class="ch-button-label">Scan Text</span>
+                <small>Ctrl+Shift+T | Repeat: Ctrl+Shift+1</small>
+              </span>
+            </button>
+            <div class="ch-select-row">
+              <select id="textModelSelect" title="Text model"></select>
+              <select id="textThinkingSelect" title="Text thinking"></select>
+            </div>
+          </section>
+
+          <section class="ch-mode-panel">
+            <button id="scanImageButton" class="ch-image-button ch-scan-button" type="button">
+              <span class="ch-button-copy">
+                <span class="ch-button-label">Scan Image</span>
+                <small>Ctrl+Shift+I | Repeat: Ctrl+Shift+2</small>
+              </span>
+            </button>
+            <div class="ch-select-row">
+              <select id="imageModelSelect" title="Image model"></select>
+              <select id="imageThinkingSelect" title="Image thinking"></select>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="ch-body">
+        <div class="ch-history-toolbar">
+          <button id="compactButton" class="ch-mini" type="button">Compact</button>
+          <button id="alwaysOnTopButton" class="ch-mini" type="button" aria-pressed="false">Always on Top</button>
+          <button id="historyPrevButton" class="ch-icon-button" type="button" title="Previous">&lt;</button>
+          <span id="historyCounter">0/0</span>
+          <button id="historyNextButton" class="ch-icon-button" type="button" title="Next">&gt;</button>
+          <button id="addManualButton" class="ch-add-button" type="button" title="New manual input" aria-label="New manual input">+</button>
+          <button id="cancelManualButton" class="ch-cancel-button" type="button" title="Cancel manual input" aria-label="Cancel manual input" disabled>-</button>
+          <button id="deleteHistoryButton" class="ch-delete-button" type="button" title="Delete history" aria-label="Delete history">x</button>
+        </div>
+        <div class="ch-history-grid">
+          <section>
+            <h2>Input</h2>
+            <div id="historyInput" class="ch-history-box">
+              <img id="historyInputImage" class="ch-history-image" alt="" hidden>
+              <span id="historyInputText">No history yet.</span>
+              <textarea id="manualInput" class="ch-manual-input" placeholder="Enter text or paste image" hidden></textarea>
+            </div>
+          </section>
+          <section>
+            <div class="ch-section-heading">
+              <h2>Output</h2>
+              <button id="copyOutputButton" class="ch-copy-button" type="button" title="Copy output" aria-label="Copy output">copy</button>
+            </div>
+            <div id="historyOutput" class="ch-history-box"></div>
+          </section>
+        </div>
+      </section>
+
+      <div id="manualActionRow" class="ch-manual-action-row" hidden>
+        <button id="manualSendButton" class="ch-primary" type="button">Send Text</button>
+      </div>
+
+      <section class="ch-prompt-grid">
+        <div class="ch-prompt-block">
+          <select id="textPromptSelect">
+            <option value="solver">Solver</option>
+            <option value="none">None</option>
+            <option value="other">Other</option>
+          </select>
+          <textarea id="textCustomPrompt" placeholder="Custom text system prompt"></textarea>
+        </div>
+        <div class="ch-prompt-block">
+          <select id="imagePromptSelect">
+            <option value="solver">Solver</option>
+            <option value="none">None</option>
+            <option value="other">Other</option>
+          </select>
+          <textarea id="imageCustomPrompt" placeholder="Custom image system prompt"></textarea>
+        </div>
+      </section>
+
+      <footer id="appFooter" class="ch-footer">
+        <button id="developerLink" type="button">Developed by Baris Kisir</button>
+        <button id="sourceLink" type="button">Source</button>
+      </footer>
+      </section>
+    </main>
+    <script src="tesseract.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
