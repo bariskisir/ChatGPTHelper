@@ -1,7 +1,9 @@
-// Builds frontend assets before Tauri packages the desktop application.
+// Ensures frontend assets exist before Tauri packages the desktop application.
+use std::env;
+use std::fs;
 use std::path::Path;
-use std::process::Command;
-use std::{fs, io, time::SystemTime};
+
+const PLACEHOLDER_APP_JS: &str = "console.warn('Run npm install && npm run build in frontend.');";
 
 /// Ensures `cargo run` can compile even when the Tauri CLI did not run
 /// `beforeBuildCommand` first.
@@ -10,11 +12,13 @@ fn main() {
     tauri_build::build();
 }
 
-/// Ensures packaged frontend assets exist before Rust compilation continues.
+/// Verifies release assets and creates lightweight dev fallbacks when needed.
 fn ensure_frontend_dist() {
     println!("cargo:rerun-if-changed=frontend/index.html");
     println!("cargo:rerun-if-changed=frontend/styles.css");
+    println!("cargo:rerun-if-changed=frontend/scripts/prepare-dist.mjs");
     println!("cargo:rerun-if-changed=frontend/src");
+    println!("cargo:rerun-if-changed=frontend/package-lock.json");
     println!("cargo:rerun-if-changed=icons/icon.png");
 
     let dist = Path::new("frontend").join("dist");
@@ -22,25 +26,17 @@ fn ensure_frontend_dist() {
     let dist_index = dist.join("index.html");
     let dist_styles = dist.join("styles.css");
     let dist_icon = dist.join("icon.png");
+    let dist_tesseract = dist.join("tesseract.min.js");
 
-    if dist_app.exists()
-        && dist_index.exists()
-        && dist_styles.exists()
-        && dist_icon.exists()
-        && !frontend_dist_is_stale(&dist)
-    {
+    if frontend_dist_is_complete(&dist) {
         return;
     }
 
-    if Path::new("frontend").join("node_modules").exists() {
-        build_frontend();
-        if dist_app.exists() && dist_index.exists() && dist_styles.exists() && dist_icon.exists() {
-            return;
-        }
-    }
-
-    if dist_app.exists() && dist_index.exists() && dist_styles.exists() && dist_icon.exists() {
-        return;
+    if is_release_profile() {
+        panic!(
+            "Frontend assets are not ready for release packaging: {}. Run `npm install` and `npm run build` in frontend.",
+            frontend_dist_problem(&dist)
+        );
     }
 
     fs::create_dir_all(&dist).expect("Could not create frontend/dist");
@@ -48,78 +44,64 @@ fn ensure_frontend_dist() {
     copy_asset("frontend/styles.css", &dist_styles);
     copy_asset("icons/icon.png", &dist_icon);
 
-    if !dist_app.exists() {
-        fs::write(
-            &dist_app,
-            "console.warn('Run npm install && npm run build in frontend.');",
-        )
-        .expect("Could not create placeholder frontend/dist/app.js");
-    }
-}
-
-/// Checks whether generated frontend assets are older than their sources.
-fn frontend_dist_is_stale(dist: &Path) -> bool {
-    let dist_app = dist.join("app.js");
-    let Ok(dist_modified) = modified_at(&dist_app) else {
-        return true;
-    };
-
-    let sources = [
-        Path::new("frontend").join("index.html"),
-        Path::new("frontend").join("styles.css"),
-        Path::new("frontend").join("tsconfig.json"),
-        Path::new("frontend").join("package.json"),
-        Path::new("icons").join("icon.png"),
-    ];
-
-    sources
-        .iter()
-        .any(|path| modified_at(path).is_ok_and(|modified| modified > dist_modified))
-        || directory_newer_than(Path::new("frontend").join("src").as_path(), dist_modified)
-            .unwrap_or(true)
-}
-
-/// Walks a directory tree to find files newer than the supplied timestamp.
-fn directory_newer_than(path: &Path, timestamp: SystemTime) -> io::Result<bool> {
-    for entry in fs::read_dir(path)? {
-        let entry = entry?;
-        let metadata = entry.metadata()?;
-        if metadata.is_dir() {
-            if directory_newer_than(&entry.path(), timestamp)? {
-                return Ok(true);
-            }
-        } else if metadata.modified()? > timestamp {
-            return Ok(true);
+    if !dist_tesseract.exists() {
+        let tesseract_source = Path::new("frontend")
+            .join("node_modules")
+            .join("tesseract.js")
+            .join("dist")
+            .join("tesseract.min.js");
+        if tesseract_source.exists() {
+            copy_asset(tesseract_source.as_path(), &dist_tesseract);
         }
     }
-    Ok(false)
+
+    if !dist_app.exists() {
+        fs::write(&dist_app, PLACEHOLDER_APP_JS)
+            .expect("Could not create placeholder frontend/dist/app.js");
+    }
 }
 
-/// Reads the last modification time for a filesystem path.
-fn modified_at(path: &Path) -> io::Result<SystemTime> {
-    fs::metadata(path)?.modified()
+/// Reports whether Cargo is building an optimized release artifact.
+fn is_release_profile() -> bool {
+    env::var("PROFILE").is_ok_and(|profile| profile == "release")
 }
 
-/// Runs the frontend build script with the local npm executable.
-fn build_frontend() {
-    let npm = if cfg!(windows) { "npm.cmd" } else { "npm" };
-    let status = Command::new(npm)
-        .args(["run", "build"])
-        .current_dir("frontend")
-        .status()
-        .expect("Could not start frontend build. Run `npm install` in frontend.");
+/// Checks whether all frontend files referenced by the app shell exist.
+fn frontend_dist_is_complete(dist: &Path) -> bool {
+    dist.join("app.js").exists()
+        && dist.join("index.html").exists()
+        && dist.join("styles.css").exists()
+        && dist.join("icon.png").exists()
+        && dist.join("tesseract.min.js").exists()
+}
 
-    if !status.success() {
-        panic!("Frontend build failed. Run `npm install` and `npm run build` in frontend.");
+/// Describes why the frontend distribution cannot be packaged.
+fn frontend_dist_problem(dist: &Path) -> String {
+    let missing = [
+        "app.js",
+        "index.html",
+        "styles.css",
+        "icon.png",
+        "tesseract.min.js",
+    ]
+    .into_iter()
+    .filter(|file| !dist.join(file).exists())
+    .collect::<Vec<_>>();
+
+    if missing.is_empty() {
+        "unknown frontend build problem".to_owned()
+    } else {
+        format!("missing {}", missing.join(", "))
     }
 }
 
 /// Copies a required static asset into the frontend distribution directory.
-fn copy_asset(source: &str, destination: &Path) {
+fn copy_asset(source: impl AsRef<Path>, destination: &Path) {
+    let source = source.as_ref();
     fs::copy(source, destination).unwrap_or_else(|error| {
         panic!(
             "Could not copy {} to {}: {}. Run `npm install` and `npm run build` in frontend.",
-            source,
+            source.display(),
             destination.display(),
             error
         )

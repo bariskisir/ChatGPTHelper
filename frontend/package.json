@@ -1,8 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "build": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& './scripts/prepare-dist.ps1'; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; & './node_modules/.bin/tsc.cmd'\"",
-    "watch": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& './scripts/prepare-dist.ps1'; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; & './node_modules/.bin/tsc.cmd' --watch\""
+    "build": "node scripts/prepare-dist.mjs && tsc",
+    "watch": "node scripts/prepare-dist.mjs && tsc --watch"
   },
   "devDependencies": {
     "tesseract.js": "^7.0.0",

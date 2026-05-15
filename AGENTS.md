@@ -12,7 +12,7 @@ ChatGPT Helper is a Windows-focused Tauri 2 desktop app. The Rust backend manage
 - `src/infra`: persistence, paths, logging, shell helpers, clipboard, screen capture/selection, and ChatGPT HTTP helpers.
 - `frontend/src`: browser-side TypeScript namespaces compiled by `tsc`.
 - `frontend/index.html` and `frontend/styles.css`: desktop UI shell and styling.
-- `frontend/scripts/prepare-dist.ps1`: copies frontend assets and Tesseract browser bundle into `frontend/dist`.
+- `frontend/scripts/prepare-dist.mjs`: copies frontend assets and Tesseract browser bundle into `frontend/dist`.
 - `capabilities/default.json`: packaged capability metadata.
 - `vendor/typeid`: local crate patch; do not edit unless the dependency patch itself is the task.
 

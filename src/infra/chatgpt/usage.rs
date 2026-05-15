@@ -79,12 +79,22 @@ fn format_rate_limit_window(window: &Value) -> Option<UsageWindowLabel> {
     }
     let mut label = format!("{}: {percent}%", format_window(minutes));
     if let Some(reset_at) = reset_timestamp(window)
-        && let Some(time) = chrono::DateTime::from_timestamp(reset_at, 0)
-            .map(|v| v.with_timezone(&Local).format("%H:%M").to_string())
+        && let Some(time) = format_reset_time(reset_at)
     {
         label.push_str(&format!(" resets {time}"));
     }
     Some(UsageWindowLabel { minutes, label })
+}
+
+/// Formats a reset timestamp with a date only when it is not today.
+fn format_reset_time(reset_at: i64) -> Option<String> {
+    let reset = chrono::DateTime::from_timestamp(reset_at, 0)?.with_timezone(&Local);
+    let pattern = if reset.date_naive() == Local::now().date_naive() {
+        "%H:%M"
+    } else {
+        "%d.%m %H:%M"
+    };
+    Some(reset.format(pattern).to_string())
 }
 
 /// Finds the plan name in a usage payload.
