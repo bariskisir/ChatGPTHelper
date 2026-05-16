@@ -2,6 +2,9 @@
 
 ChatGPT Helper is a compact Tauri desktop assistant for working with ChatGPT from your desktop. After ChatGPT sign-in, it can answer manual input, scan selected Windows screen areas with local OCR, and analyze selected image areas.
 
+Chrome Extension -> https://github.com/bariskisir/ChatGPTChromeHelper
+
+
 ![ChatGPT Helper interface](images/interface.png)
 
 ---
