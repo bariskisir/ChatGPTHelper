@@ -99,13 +99,11 @@ impl AppState {
             normalize_prompt_preset(&input.image_system_prompt_preset);
         inner.settings.text_custom_system_prompt = input
             .text_custom_system_prompt
-            .trim()
             .chars()
             .take(4000)
             .collect();
         inner.settings.image_custom_system_prompt = input
             .image_custom_system_prompt
-            .trim()
             .chars()
             .take(4000)
             .collect();
@@ -641,7 +639,7 @@ fn resolve_system_prompt(settings: &AppSettings, kind: ScanKind) -> String {
             if custom.trim().is_empty() {
                 kind.solver_prompt().to_owned()
             } else {
-                custom.trim().to_owned()
+                custom.to_owned()
             }
         }
         SystemPromptPreset::Solver => kind.solver_prompt().to_owned(),
