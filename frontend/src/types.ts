@@ -1,5 +1,6 @@
-// Shared frontend data types exchanged with the Tauri backend.
-interface SelectionArea {
+/** Shared frontend data types exchanged with the Tauri backend. */
+
+export interface SelectionArea {
   left: number;
   top: number;
   width: number;
@@ -7,11 +8,11 @@ interface SelectionArea {
   savedAt: string;
 }
 
-type ScanKind = "text" | "image";
-type HistoryEntryType = "ask" | "text" | "image";
-type SystemPromptPreset = "solver" | "none" | "other";
+export type ScanKind = "text" | "image";
+export type HistoryEntryType = "ask" | "text" | "image";
+export type SystemPromptPreset = "solver" | "none" | "other";
 
-interface AppSettings {
+export interface AppSettings {
   textScanModel: string;
   imageScanModel: string;
   textThinkingVariant: string;
@@ -25,12 +26,12 @@ interface AppSettings {
   alwaysOnTop: boolean;
 }
 
-interface ThinkingVariantOption {
+export interface ThinkingVariantOption {
   value: string;
   description: string;
 }
 
-interface AvailableModel {
+export interface AvailableModel {
   id: string;
   model: string;
   displayName: string;
@@ -42,14 +43,14 @@ interface AvailableModel {
   thinkingVariants: ThinkingVariantOption[];
 }
 
-interface ChatGptViewState {
+export interface ChatGptViewState {
   loggedIn: boolean;
   accountEmail: string;
   limitLabel: string;
   error: string;
 }
 
-interface HistoryEntry {
+export interface HistoryEntry {
   input: string;
   inputImageDataUrl: string;
   output: string;
@@ -57,7 +58,7 @@ interface HistoryEntry {
   createdAt: string;
 }
 
-interface AppViewState {
+export interface AppViewState {
   settings: AppSettings;
   status: string;
   chatgpt: ChatGptViewState;
@@ -69,12 +70,12 @@ interface AppViewState {
   selectedHistory: HistoryEntry | null;
 }
 
-interface ScreenAreaCaptureResult {
+export interface ScreenAreaCaptureResult {
   area: SelectionArea;
   imageDataUrl: string;
 }
 
-interface FrontendSettings {
+export interface FrontendSettings {
   textScanModel: string;
   imageScanModel: string;
   textThinkingVariant: string;
@@ -86,7 +87,7 @@ interface FrontendSettings {
   alwaysOnTop: boolean;
 }
 
-interface UiEventPayload {
+export interface UiEventPayload {
   type: "state" | "answer" | "error" | "shortcut";
   state?: AppViewState;
   answer?: string;
@@ -95,18 +96,20 @@ interface UiEventPayload {
   action?: string;
 }
 
-interface TesseractGlobal {
-  // Creates a Tesseract OCR worker for the requested language.
+export interface TesseractGlobal {
+  /** Creates a Tesseract OCR worker for the requested language. */
   createWorker(language?: string, oem?: number, options?: Record<string, unknown>): Promise<TesseractWorker>;
 }
 
-interface TesseractWorker {
-  // Runs OCR against an image URL or data URL.
+export interface TesseractWorker {
+  /** Runs OCR against an image URL or data URL. */
   recognize(image: string): Promise<{ data: { text: string } }>;
-  // Applies OCR engine parameters before recognition.
+  /** Applies OCR engine parameters before recognition. */
   setParameters(parameters: Record<string, string>): Promise<void>;
 }
 
-interface Window {
-  Tesseract?: TesseractGlobal;
+declare global {
+  interface Window {
+    Tesseract?: TesseractGlobal;
+  }
 }
